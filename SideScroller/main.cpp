@@ -85,27 +85,34 @@ int main()
 
     //Initialise nebula texture
     Texture2D nebulaTexture = LoadTexture("textures/12_nebula_spritesheet.png");
-    EntityData nebulaData{
-        {0, 0, nebulaTexture.width/8, nebulaTexture.height/8},                   /*Rectangle - Texture Rect*/
-        {WINDOW_DIMENSIONS.x, WINDOW_DIMENSIONS.y - nebulaTexture.height/8},     /*Vector2 - Position*/
-        {-600, 0},                                                               /*Vector2 - Velocity*/
-        {0, 0},                                                                  /*Vector2 - Animation Frame*/
-        {7, 6},                                                                  /*Vector2 - Max Animation Frame*/
-        1.0 / 12.0,                                                              /*Float - Animation Update Time*/
-        0.0                                                                      /*Float - Animation Running Time*/
-    };
 
-    EntityData nebula2Data{
-        {0, 0, nebulaTexture.width/8, nebulaTexture.height/8},                         /*Rectangle - Texture Rect*/
-        {WINDOW_DIMENSIONS.x + 900, WINDOW_DIMENSIONS.y - nebulaTexture.height/8},     /*Vector2 - Position*/
-        {-600, 0},                                                                     /*Vector2 - Velocity*/
-        {0, 0},                                                                        /*Vector2 - Animation Frame*/
-        {7, 6},                                                                        /*Vector2 - Max Animation Frame*/
-        1.0 / 12.0,                                                                    /*Float - Animation Update Time*/
-        0.0                                                                            /*Float - Animation Running Time*/
-    };
+    //Create nebulas
+    const int NEBULA_SPACING = 900;
+    const int NEBULA_AMOUNT = 3;
+    EntityData nebulae[NEBULA_AMOUNT]{};
 
-    EntityData nebulae[2]{nebulaData, nebula2Data};
+    for(int i = 0; i < NEBULA_AMOUNT; i++)
+    {
+        nebulae[i].textureRect.x = 0.0;
+        nebulae[i].textureRect.y = 0.0;
+        nebulae[i].textureRect.width = nebulaTexture.width/8;
+        nebulae[i].textureRect.height = nebulaTexture.height/8;
+
+        nebulae[i].position.x = WINDOW_DIMENSIONS.x + (NEBULA_SPACING * i);
+        nebulae[i].position.y = WINDOW_DIMENSIONS.y - nebulaTexture.height/8;
+
+        nebulae[i].velocity.x = -600;
+        nebulae[i].velocity.y = 0;
+
+        nebulae[i].animFrame.x = 0;
+        nebulae[i].animFrame.y = 0;
+
+        nebulae[i].maxAnimFrame.x = 7;
+        nebulae[i].maxAnimFrame.y = 6;
+
+        nebulae[i].animUpdateTime = 1.0 / 12.0;
+        nebulae[i].animRunningTime = 0.0;
+    }
 
     bool running = true;
 
@@ -148,22 +155,18 @@ int main()
         playerData.position.y += playerData.velocity.y * DELTA_TIME;
 
         //Update nebulas positions
-        nebulae[0].position.x += nebulaData.velocity.x * DELTA_TIME;
-        nebulae[1].position.x += nebulaData.velocity.x * DELTA_TIME;
+        for(int i = 0; i < NEBULA_AMOUNT; i++)
+        {
+            nebulae[i].position.x += nebulae[i].velocity.x * DELTA_TIME; //Move
+            nebulae[i].Animate(DELTA_TIME); //Animate
+            DrawTextureRec(nebulaTexture, nebulae[i].textureRect, nebulae[i].position, WHITE); //Draw
+        }
 
         //Update player animations
         if(!playerIsInAir)
         {
             playerData.Animate(DELTA_TIME);
         }
-
-        //Update nebulas animations
-        nebulae[0].Animate(DELTA_TIME);
-        nebulae[1].Animate(DELTA_TIME);
-
-        //Draw nebulas
-        DrawTextureRec(nebulaTexture, nebulae[0].textureRect, nebulae[0].position, WHITE);
-        DrawTextureRec(nebulaTexture, nebulae[1].textureRect, nebulae[1].position, WHITE);
 
         //Draw player
         DrawTextureRec(playerTexture, playerData.textureRect, playerData.position, WHITE);
