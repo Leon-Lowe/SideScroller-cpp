@@ -40,9 +40,14 @@ int main()
     playerVelocity.x = 0;
     playerVelocity.y = 0;
 
+    //Initialise player animation
+    int playerFrame = 0;
+    const float PLAYER_ANIM_UPDATE_TIME = 1.0 / 12.0;
+    float playerAnimRunningTime = 0;
+
     //Initialise player variables
     const int PLAYER_JUMP_FORCE = 600; //Pixels per second
-    bool isInAir = false;
+    bool playerIsInAir = false;
 
     bool running = true;
 
@@ -61,29 +66,43 @@ int main()
 
         ClearBackground(WHITE);
 
-        //Ground check
+        //Player ground check
         if(playerPosition.y >= WINDOW_HEIGHT - playerTextureRect.height)
         {
             playerVelocity.y = 0;
             playerPosition.y = WINDOW_HEIGHT - playerTextureRect.height;
-            isInAir = false;
+            playerIsInAir = false;
         }
         else
         {
-            //Apply gravity
+            //Apply gravity to player
             playerVelocity.y += GRAVITY * DELTA_TIME;
-            isInAir = true;
+            playerIsInAir = true;
         }
 
-        //Jump check
-        if(IsKeyPressed(KEY_SPACE) && !isInAir)
+        //Player jump check
+        if(IsKeyPressed(KEY_SPACE) && !playerIsInAir)
         {
             playerVelocity.y -= PLAYER_JUMP_FORCE;
         }
 
-        //Update position
+        //Update player position
         playerPosition.y += playerVelocity.y * DELTA_TIME;
 
+        //Update player animation frame
+        playerAnimRunningTime += DELTA_TIME;
+        if(playerAnimRunningTime >= PLAYER_ANIM_UPDATE_TIME)
+        {
+            playerAnimRunningTime = 0;
+            playerTextureRect.x = playerFrame * playerTextureRect.width;
+            playerFrame++;
+            if(playerFrame > 5)
+            {
+                playerFrame = 0;
+            }
+        }
+
+        //Draw player
         DrawTextureRec(playerTexture, playerTextureRect, playerPosition, WHITE);
 
         EndDrawing();
