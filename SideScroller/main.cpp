@@ -18,7 +18,7 @@ int main()
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME);
     SetTargetFPS(60);
 
-    const int GRAVITY = 1;
+    const int GRAVITY = 1000; //(Pixels per second) per second
 
     //Initialise player texture
     Texture2D playerTexture = LoadTexture("textures/scarfy.png");
@@ -41,7 +41,7 @@ int main()
     playerVelocity.y = 0;
 
     //Initialise player variables
-    const int PLAYER_JUMP_FORCE = 22;
+    const int PLAYER_JUMP_FORCE = 600; //Pixels per second
     bool isInAir = false;
 
     bool running = true;
@@ -53,6 +53,9 @@ int main()
         {
             running = false;
         }
+
+        //Delta time (time since last frame)
+        const float DELTA_TIME = GetFrameTime();
 
         BeginDrawing();
 
@@ -68,7 +71,7 @@ int main()
         else
         {
             //Apply gravity
-            playerVelocity.y += GRAVITY;
+            playerVelocity.y += GRAVITY * DELTA_TIME;
             isInAir = true;
         }
 
@@ -79,12 +82,14 @@ int main()
         }
 
         //Update position
-        playerPosition.y += playerVelocity.y;
+        playerPosition.y += playerVelocity.y * DELTA_TIME;
 
         DrawTextureRec(playerTexture, playerTextureRect, playerPosition, WHITE);
 
         EndDrawing();
     }
+    //Unload textures
+    UnloadTexture(playerTexture);
 
     //Close the game
     CloseWindow();
