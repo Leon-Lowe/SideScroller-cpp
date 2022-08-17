@@ -20,12 +20,28 @@ int main()
 
     const int GRAVITY = 1;
 
-    //Rectangle variables
-    const int RECT_WIDTH = 50;
-    const int RECT_HEIGHT = 80;
-    int rectPosY = WINDOW_HEIGHT - RECT_HEIGHT;
-    int rectVelocity = 0;
-    const int RECT_JUMP_FORCE = 22;
+    //Initialise player texture
+    Texture2D playerTexture = LoadTexture("textures/scarfy.png");
+
+    //Initialise player tecture rect
+    Rectangle playerTextureRect;
+    playerTextureRect.width = playerTexture.width/6;
+    playerTextureRect.height = playerTexture.height;
+    playerTextureRect.x = 0;
+    playerTextureRect.y = 0;
+
+    //Initialise player position
+    Vector2 playerPosition;
+    playerPosition.x = WINDOW_WIDTH/2 - playerTextureRect.width/2;
+    playerPosition.y = WINDOW_HEIGHT - playerTextureRect.height;
+
+    //Initialise player velocity
+    Vector2 playerVelocity;
+    playerVelocity.x = 0;
+    playerVelocity.y = 0;
+
+    //Initialise player variables
+    const int PLAYER_JUMP_FORCE = 22;
     bool isInAir = false;
 
     bool running = true;
@@ -43,29 +59,29 @@ int main()
         ClearBackground(WHITE);
 
         //Ground check
-        if(rectPosY >= WINDOW_HEIGHT - RECT_HEIGHT)
+        if(playerPosition.y >= WINDOW_HEIGHT - playerTextureRect.height)
         {
-            rectVelocity = 0;
-            rectPosY = WINDOW_HEIGHT - RECT_HEIGHT;
+            playerVelocity.y = 0;
+            playerPosition.y = WINDOW_HEIGHT - playerTextureRect.height;
             isInAir = false;
         }
         else
         {
             //Apply gravity
-            rectVelocity += GRAVITY;
+            playerVelocity.y += GRAVITY;
             isInAir = true;
         }
 
         //Jump check
         if(IsKeyPressed(KEY_SPACE) && !isInAir)
         {
-            rectVelocity -= RECT_JUMP_FORCE;
+            playerVelocity.y -= PLAYER_JUMP_FORCE;
         }
 
         //Update position
-        rectPosY += rectVelocity;
+        playerPosition.y += playerVelocity.y;
 
-        DrawRectangle((WINDOW_WIDTH/2) - (RECT_WIDTH/2), rectPosY, RECT_WIDTH, RECT_HEIGHT, BLUE);
+        DrawTextureRec(playerTexture, playerTextureRect, playerPosition, WHITE);
 
         EndDrawing();
     }
