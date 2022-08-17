@@ -20,34 +20,52 @@ int main()
 
     const int GRAVITY = 1000; //(Pixels per second) per second
 
+    /*
+        * Player Creation
+    */
+
     //Initialise player texture
     Texture2D playerTexture = LoadTexture("textures/scarfy.png");
 
     //Initialise player tecture rect
-    Rectangle playerTextureRect;
-    playerTextureRect.width = playerTexture.width/6;
-    playerTextureRect.height = playerTexture.height;
-    playerTextureRect.x = 0;
-    playerTextureRect.y = 0;
+    Rectangle playerTextureRect{0, 0, playerTexture.width/6, playerTexture.height};
 
     //Initialise player position
-    Vector2 playerPosition;
-    playerPosition.x = WINDOW_WIDTH/2 - playerTextureRect.width/2;
-    playerPosition.y = WINDOW_HEIGHT - playerTextureRect.height;
+    Vector2 playerPosition{WINDOW_WIDTH/2 - playerTextureRect.width/2, WINDOW_HEIGHT - playerTextureRect.height};
 
     //Initialise player velocity
-    Vector2 playerVelocity;
-    playerVelocity.x = 0;
-    playerVelocity.y = 0;
+    Vector2 playerVelocity{0, 0};
 
     //Initialise player animation
     int playerFrame = 0;
     const float PLAYER_ANIM_UPDATE_TIME = 1.0 / 12.0;
     float playerAnimRunningTime = 0;
 
-    //Initialise player variables
+    //Initialise player jump variables
     const int PLAYER_JUMP_FORCE = 600; //Pixels per second
     bool playerIsInAir = false;
+
+    /*
+        * Nebula Creation
+    */
+
+    //Initialise nebula texture
+    Texture2D nebulaTexture = LoadTexture("textures/12_nebula_spritesheet.png");
+
+    //Initialise nebula texture rect
+    Rectangle nebulaTextureRect{0, 0, nebulaTexture.width/8, nebulaTexture.height/8};
+
+    //Initialise nebula position
+    Vector2 nebulaPosition{WINDOW_WIDTH, WINDOW_HEIGHT - nebulaTextureRect.height};
+
+    //Initialise nebula velocity
+    Vector2 nebulaVelocity{-600, 0};
+
+    //Initialise nebula animation
+    int nebulaFrameX = 0;
+    int nebulaFrameY = 0;
+    const float NEBULA_ANIM_UPDATE_TIME = 1.0 / 12.0;
+    float nebulaAnimRunningTime = 0;
 
     bool running = true;
 
@@ -89,18 +107,46 @@ int main()
         //Update player position
         playerPosition.y += playerVelocity.y * DELTA_TIME;
 
+        //Update nebula position
+        nebulaPosition.x += nebulaVelocity.x * DELTA_TIME;
+
         //Update player animation frame
-        playerAnimRunningTime += DELTA_TIME;
-        if(playerAnimRunningTime >= PLAYER_ANIM_UPDATE_TIME)
+        if(!playerIsInAir)
         {
-            playerAnimRunningTime = 0;
-            playerTextureRect.x = playerFrame * playerTextureRect.width;
-            playerFrame++;
-            if(playerFrame > 5)
+            playerAnimRunningTime += DELTA_TIME;
+            if(playerAnimRunningTime >= PLAYER_ANIM_UPDATE_TIME)
             {
-                playerFrame = 0;
+                playerAnimRunningTime = 0;
+                playerTextureRect.x = playerFrame * playerTextureRect.width;
+                playerFrame++;
+                if(playerFrame > 5)
+                {
+                    playerFrame = 0;
+                }
             }
         }
+
+        //Update nebula animation frame
+        nebulaAnimRunningTime += DELTA_TIME;
+        if(nebulaAnimRunningTime >= NEBULA_ANIM_UPDATE_TIME)
+        {
+            nebulaAnimRunningTime = 0;
+            nebulaTextureRect.x = nebulaFrameX * nebulaTextureRect.width;
+            nebulaTextureRect.y = nebulaFrameY * nebulaTextureRect.height;
+            nebulaFrameX++;
+            if(nebulaFrameX > 7)
+            {
+                nebulaFrameX = 0;
+                nebulaFrameY++;
+            }
+            if(nebulaFrameY > 6)
+            {
+                nebulaFrameY = 0;
+            }
+        }
+
+        //Draw nebula
+        DrawTextureRec(nebulaTexture, nebulaTextureRect, nebulaPosition, WHITE);
 
         //Draw player
         DrawTextureRec(playerTexture, playerTextureRect, playerPosition, WHITE);
@@ -109,6 +155,7 @@ int main()
     }
     //Unload textures
     UnloadTexture(playerTexture);
+    UnloadTexture(nebulaTexture);
 
     //Close the game
     CloseWindow();
