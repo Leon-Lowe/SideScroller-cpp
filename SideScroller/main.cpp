@@ -7,6 +7,17 @@
 
 #include "raylib.h"
 
+struct EntityData
+{
+    Rectangle textureRect;
+    Vector2 position;
+    Vector2 velocity;
+    Vector2 animFrame;
+    Vector2 maxAnimFrame;
+    float animUpdateTime;
+    float animRunningTime;
+};
+
 int main()
 {
     //Window variabes
@@ -26,20 +37,15 @@ int main()
 
     //Initialise player texture
     Texture2D playerTexture = LoadTexture("textures/scarfy.png");
-
-    //Initialise player tecture rect
-    Rectangle playerTextureRect{0, 0, playerTexture.width/6, playerTexture.height};
-
-    //Initialise player position
-    Vector2 playerPosition{WINDOW_WIDTH/2 - playerTextureRect.width/2, WINDOW_HEIGHT - playerTextureRect.height};
-
-    //Initialise player velocity
-    Vector2 playerVelocity{0, 0};
-
-    //Initialise player animation
-    int playerFrame = 0;
-    const float PLAYER_ANIM_UPDATE_TIME = 1.0 / 12.0;
-    float playerAnimRunningTime = 0;
+    EntityData playerData{
+        {0, 0, playerTexture.width/6, playerTexture.height},                                        /*Rectangle - Texture Rect*/
+        {(WINDOW_WIDTH/2) - ((playerTexture.width/6) / 2), WINDOW_HEIGHT - playerTexture.height},   /*Vector2 - Position*/
+        {0, 0},                                                                                     /*Vector2 - Velocity*/
+        {0, 0},                                                                                     /*Vector2 - Animation Frame*/
+        {5,0},                                                                                      /*Vector2 - Max Animation Frame*/
+        1.0 / 12.0,                                                                                 /*Float - Animation Update Time*/
+        0.0                                                                                         /*Float - Animation Running Time*/
+    };
 
     //Initialise player jump variables
     const int PLAYER_JUMP_FORCE = 600; //Pixels per second
@@ -51,21 +57,15 @@ int main()
 
     //Initialise nebula texture
     Texture2D nebulaTexture = LoadTexture("textures/12_nebula_spritesheet.png");
-
-    //Initialise nebula texture rect
-    Rectangle nebulaTextureRect{0, 0, nebulaTexture.width/8, nebulaTexture.height/8};
-
-    //Initialise nebula position
-    Vector2 nebulaPosition{WINDOW_WIDTH, WINDOW_HEIGHT - nebulaTextureRect.height};
-
-    //Initialise nebula velocity
-    Vector2 nebulaVelocity{-600, 0};
-
-    //Initialise nebula animation
-    int nebulaFrameX = 0;
-    int nebulaFrameY = 0;
-    const float NEBULA_ANIM_UPDATE_TIME = 1.0 / 12.0;
-    float nebulaAnimRunningTime = 0;
+    EntityData nebulaData{
+        {0, 0, nebulaTexture.width/8, nebulaTexture.height/8},      /*Rectangle - Texture Rect*/
+        {WINDOW_WIDTH, WINDOW_HEIGHT - nebulaTexture.height/8},     /*Vector2 - Position*/
+        {-600, 0},                                                  /*Vector2 - Velocity*/
+        {0, 0},                                                     /*Vector2 - Animation Frame*/
+        {7, 6},                                                     /*Vector2 - Max Animation Frame*/
+        1.0 / 12.0,                                                 /*Float - Animation Update Time*/
+        0.0                                                         /*Float - Animation Running Time*/
+    };
 
     bool running = true;
 
@@ -85,71 +85,77 @@ int main()
         ClearBackground(WHITE);
 
         //Player ground check
-        if(playerPosition.y >= WINDOW_HEIGHT - playerTextureRect.height)
+        if(playerData.position.y >= WINDOW_HEIGHT - playerData.textureRect.height)
         {
-            playerVelocity.y = 0;
-            playerPosition.y = WINDOW_HEIGHT - playerTextureRect.height;
+            playerData.velocity.y = 0;
+            playerData.position.y = WINDOW_HEIGHT - playerData.textureRect.height;
             playerIsInAir = false;
         }
         else
         {
             //Apply gravity to player
-            playerVelocity.y += GRAVITY * DELTA_TIME;
+            playerData.velocity.y += GRAVITY * DELTA_TIME;
             playerIsInAir = true;
         }
 
         //Player jump check
         if(IsKeyPressed(KEY_SPACE) && !playerIsInAir)
         {
-            playerVelocity.y -= PLAYER_JUMP_FORCE;
+            playerData.velocity.y -= PLAYER_JUMP_FORCE;
         }
 
         //Update player position
-        playerPosition.y += playerVelocity.y * DELTA_TIME;
+        playerData.position.y += playerData.velocity.y * DELTA_TIME;
 
         //Update nebula position
-        nebulaPosition.x += nebulaVelocity.x * DELTA_TIME;
+        nebulaData.position.x += nebulaData.velocity.x * DELTA_TIME;
 
         //Update player animation frame
         if(!playerIsInAir)
         {
-            playerAnimRunningTime += DELTA_TIME;
-            if(playerAnimRunningTime >= PLAYER_ANIM_UPDATE_TIME)
+            playerData.animRunningTime += DELTA_TIME;
+            if(playerData.animRunningTime >= playerData.animUpdateTime)
             {
-                playerAnimRunningTime = 0;
-                playerTextureRect.x = playerFrame * playerTextureRect.width;
-                playerFrame++;
-                if(playerFrame > 5)
+                playerData.animRunningTime = 0;
+                playerData.textureRect.x = playerData.animFrame.x * playerData.textureRect.width;
+                playerData.textureRect.y = playerData.animFrame.y * playerData.textureRect.height;
+                playerData.animFrame.x++;
+                if(playerData.animFrame.x > playerData.maxAnimFrame.x)
                 {
-                    playerFrame = 0;
+                    playerData.animFrame.x = 0;
+                    playerData.animFrame.y++;
+                }
+                if(playerData.animFrame.y > playerData.maxAnimFrame.y)
+                {
+                    playerData.animFrame.y = 0;
                 }
             }
         }
 
         //Update nebula animation frame
-        nebulaAnimRunningTime += DELTA_TIME;
-        if(nebulaAnimRunningTime >= NEBULA_ANIM_UPDATE_TIME)
+        nebulaData.animRunningTime += DELTA_TIME;
+        if(nebulaData.animRunningTime >= nebulaData.animUpdateTime)
         {
-            nebulaAnimRunningTime = 0;
-            nebulaTextureRect.x = nebulaFrameX * nebulaTextureRect.width;
-            nebulaTextureRect.y = nebulaFrameY * nebulaTextureRect.height;
-            nebulaFrameX++;
-            if(nebulaFrameX > 7)
+            nebulaData.animRunningTime = 0;
+            nebulaData.textureRect.x = nebulaData.animFrame.x * nebulaData.textureRect.width;
+            nebulaData.textureRect.y = nebulaData.animFrame.y * nebulaData.textureRect.height;
+            nebulaData.animFrame.x++;
+            if(nebulaData.animFrame.x > 7)
             {
-                nebulaFrameX = 0;
-                nebulaFrameY++;
+                nebulaData.animFrame.x = 0;
+                nebulaData.animFrame.y++;
             }
-            if(nebulaFrameY > 6)
+            if(nebulaData.animFrame.y > 6)
             {
-                nebulaFrameY = 0;
+                nebulaData.animFrame.y = 0;
             }
         }
 
         //Draw nebula
-        DrawTextureRec(nebulaTexture, nebulaTextureRect, nebulaPosition, WHITE);
+        DrawTextureRec(nebulaTexture, nebulaData.textureRect, nebulaData.position, WHITE);
 
         //Draw player
-        DrawTextureRec(playerTexture, playerTextureRect, playerPosition, WHITE);
+        DrawTextureRec(playerTexture, playerData.textureRect, playerData.position, WHITE);
 
         EndDrawing();
     }
