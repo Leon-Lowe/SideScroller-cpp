@@ -95,6 +95,18 @@ int main()
         0.0                                                                      /*Float - Animation Running Time*/
     };
 
+    EntityData nebula2Data{
+        {0, 0, nebulaTexture.width/8, nebulaTexture.height/8},                         /*Rectangle - Texture Rect*/
+        {WINDOW_DIMENSIONS.x + 900, WINDOW_DIMENSIONS.y - nebulaTexture.height/8},     /*Vector2 - Position*/
+        {-600, 0},                                                                     /*Vector2 - Velocity*/
+        {0, 0},                                                                        /*Vector2 - Animation Frame*/
+        {7, 6},                                                                        /*Vector2 - Max Animation Frame*/
+        1.0 / 12.0,                                                                    /*Float - Animation Update Time*/
+        0.0                                                                            /*Float - Animation Running Time*/
+    };
+
+    EntityData nebulae[2]{nebulaData, nebula2Data};
+
     bool running = true;
 
     //Main game loop
@@ -135,8 +147,9 @@ int main()
         //Update player position
         playerData.position.y += playerData.velocity.y * DELTA_TIME;
 
-        //Update nebula position
-        nebulaData.position.x += nebulaData.velocity.x * DELTA_TIME;
+        //Update nebulas positions
+        nebulae[0].position.x += nebulaData.velocity.x * DELTA_TIME;
+        nebulae[1].position.x += nebulaData.velocity.x * DELTA_TIME;
 
         //Update player animations
         if(!playerIsInAir)
@@ -144,11 +157,13 @@ int main()
             playerData.Animate(DELTA_TIME);
         }
 
-        //Update nebula animations
-        nebulaData.Animate(DELTA_TIME);
+        //Update nebulas animations
+        nebulae[0].Animate(DELTA_TIME);
+        nebulae[1].Animate(DELTA_TIME);
 
-        //Draw nebula
-        DrawTextureRec(nebulaTexture, nebulaData.textureRect, nebulaData.position, WHITE);
+        //Draw nebulas
+        DrawTextureRec(nebulaTexture, nebulae[0].textureRect, nebulae[0].position, WHITE);
+        DrawTextureRec(nebulaTexture, nebulae[1].textureRect, nebulae[1].position, WHITE);
 
         //Draw player
         DrawTextureRec(playerTexture, playerData.textureRect, playerData.position, WHITE);
