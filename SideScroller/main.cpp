@@ -154,7 +154,7 @@ int main()
         nebulae[i].animRunningTime = 0.0;
     }
 
-    bool running = true;
+    float finishLineX = nebulae[NEBULA_AMOUNT - 1].position.x + 300;
 
     /*
         * Background Creation
@@ -168,7 +168,7 @@ int main()
     //Initialise background
     BackgroundData background{
         backgroundTexture,
-        {0.0, 0.0},
+        {0.0, -240.0},
         {0.0, 0.0},
         5.0,
         -20
@@ -178,22 +178,26 @@ int main()
     //Initialise midground
     BackgroundData midground{
         midgroundTexture,
-        {0.0, 0.0},
+        {0.0, -240.0},
         {0.0, 0.0},
         5.0,
-        -30
+        -40
     };
     midground.SetDuplicatePositon();
 
     //Initialise foreground
     BackgroundData foreground{
         foregroundTexture,
-        {0.0, 0.0},
+        {0.0, -240.0},
         {0.0, 0.0},
         5.0,
-        -40
+        -80
     };
     foreground.SetDuplicatePositon();
+
+    bool running = true;
+    bool collidingWithNeb = false;
+    bool crossedFinishedLine = false;
 
     //Main game loop
     while(running)
@@ -256,14 +260,57 @@ int main()
             DrawTextureRec(nebulaTexture, nebulae[i].textureRect, nebulae[i].position, WHITE); //Draw
         }
 
+        //Update finish line position
+        finishLineX += nebulae[0].velocity.x * DELTA_TIME;
+
         //Update player animations
         if(!playerIsInAir)
         {
             playerData.Animate(DELTA_TIME);
         }
 
-        //Draw player
-        DrawTextureRec(playerTexture, playerData.textureRect, playerData.position, WHITE);
+        //Check for collision : player - nebula
+        for(EntityData neb : nebulae)
+        {
+            float padding = 20;
+            Rectangle nebRect{
+                neb.position.x + padding,
+                neb.position.y + padding,
+                neb.textureRect.width - (2 * padding),
+                neb.textureRect.height - (2 * padding)
+            };
+
+            Rectangle playerRect{
+                playerData.position.x,
+                playerData.position.y,
+                playerData.textureRect.width,
+                playerData.textureRect.height
+            };
+
+            if(CheckCollisionRecs(nebRect, playerRect))
+            {
+                collidingWithNeb = true;
+            }
+        }
+
+        if(playerData.position.x >= finishLineX)
+        {
+            crossedFinishedLine = true;
+        }
+
+        if(collidingWithNeb && !crossedFinishedLine)
+        {
+            DrawText("You Died!", WINDOW_DIMENSIONS.x / 4, WINDOW_DIMENSIONS.y / 2, 160, RED);
+        }
+        else if(!collidingWithNeb && crossedFinishedLine)
+        {
+            DrawText("You Win!", WINDOW_DIMENSIONS.x / 4, WINDOW_DIMENSIONS.y / 2, 160, GREEN);
+        }
+        else
+        {
+            //Draw player
+            DrawTextureRec(playerTexture, playerData.textureRect, playerData.position, WHITE);
+        }
 
         EndDrawing();
     }
