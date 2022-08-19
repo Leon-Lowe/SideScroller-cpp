@@ -47,6 +47,46 @@ struct EntityData
     }
 };
 
+struct BackgroundData
+{
+    Texture2D texture;
+    Vector2 position;
+    Vector2 duplicatePosition;
+    float scale;
+    int scrollVelocity;
+
+    void SetDuplicatePositon()
+    {
+        Vector2 tempPos{position.x + (texture.width * scale), position.y};
+        duplicatePosition = tempPos;
+    }
+
+    void Draw()
+    {
+        DrawTextureEx(texture, position, 0.0, scale, WHITE);
+        DrawTextureEx(texture, duplicatePosition, 0.0, scale, WHITE);
+    }
+
+    void Scroll(float time)
+    {
+        position.x += scrollVelocity * time;
+        duplicatePosition.x += scrollVelocity * time;
+    }
+
+    void CheckForReset()
+    {
+        if(position.x <= -texture.width * scale)
+        {
+            position.x = duplicatePosition.x + (texture.width * scale);
+        }
+
+        if(duplicatePosition.x <= -texture.width * scale)
+        {
+            duplicatePosition.x = position.x + (texture.width * scale);
+        }
+    }
+};
+
 int main()
 {
     //Window variabes
@@ -116,6 +156,45 @@ int main()
 
     bool running = true;
 
+    /*
+        * Background Creation
+    */
+
+    //Initialise background textures
+    Texture2D backgroundTexture = LoadTexture("textures/far-buildings.png");
+    Texture2D midgroundTexture = LoadTexture("textures/back-buildings.png");
+    Texture2D foregroundTexture = LoadTexture("textures/foreground.png");
+
+    //Initialise background
+    BackgroundData background{
+        backgroundTexture,
+        {0.0, 0.0},
+        {0.0, 0.0},
+        5.0,
+        -20
+    };
+    background.SetDuplicatePositon();
+
+    //Initialise midground
+    BackgroundData midground{
+        midgroundTexture,
+        {0.0, 0.0},
+        {0.0, 0.0},
+        5.0,
+        -30
+    };
+    midground.SetDuplicatePositon();
+
+    //Initialise foreground
+    BackgroundData foreground{
+        foregroundTexture,
+        {0.0, 0.0},
+        {0.0, 0.0},
+        5.0,
+        -40
+    };
+    foreground.SetDuplicatePositon();
+
     //Main game loop
     while(running)
     {
@@ -130,6 +209,21 @@ int main()
         BeginDrawing();
 
         ClearBackground(WHITE);
+
+        //Draw backgrounds
+        background.Draw();
+        midground.Draw();
+        foreground.Draw();
+
+        //Update background positions
+        background.Scroll(DELTA_TIME);
+        midground.Scroll(DELTA_TIME);
+        foreground.Scroll(DELTA_TIME);
+
+        //Reset background positions
+        background.CheckForReset();
+        midground.CheckForReset();
+        foreground.CheckForReset();
 
         //Player ground check
         if(playerData.position.y >= WINDOW_DIMENSIONS.y - playerData.textureRect.height)
@@ -176,6 +270,9 @@ int main()
     //Unload textures
     UnloadTexture(playerTexture);
     UnloadTexture(nebulaTexture);
+    UnloadTexture(backgroundTexture);
+    UnloadTexture(midgroundTexture);
+    UnloadTexture(foregroundTexture);
 
     //Close the game
     CloseWindow();
